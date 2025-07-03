@@ -12,7 +12,7 @@ pipeline {
         sh '''
         cd spring-boot-app 
         mvn clean package
-        java -jar target/spring-boot-web.jar
+        java -jar target/spring-boot-web.jar --server.port=9090
         '''
       }
     }
