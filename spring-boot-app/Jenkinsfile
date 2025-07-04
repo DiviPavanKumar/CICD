@@ -6,20 +6,9 @@ pipeline {
   }
 
   stages {
-
-    stage('Checkout') {
-      steps {
-        echo 'Cloning repository'
-        // Uncomment this once ready to clone from GitHub
-        // git branch: 'main', url: 'https://github.com/DiviPavanKumar/CICD.git'
-      }
-    }
-
     stage('Build and Test') {
       steps {
         dir('spring-boot-app') {
-          sh 'pwd'
-          sh 'ls -ltr'
           sh 'mvn clean package'
         }
       }
@@ -39,5 +28,28 @@ pipeline {
       }
     }
 
+    stage('Build Docker Image') {
+      steps {
+        dir('spring-boot-app') {
+          sh 'docker build -t ultimate-cicd-pipeline:v1 .'
+        }
+      }
+    }
+
+    stage('Run Docker Container') {
+      steps {
+        script {
+          sh 'docker rm -f ultimate-cicd-pipeline || true'
+          sh 'docker run -d --name ultimate-cicd-pipeline -p 8010:8080 ultimate-cicd-pipeline:v1'
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      echo 'Cleaning up workspace...'
+      cleanWs()
+    }
   }
 }
