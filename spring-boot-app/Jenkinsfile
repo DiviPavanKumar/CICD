@@ -1,57 +1,45 @@
 pipeline {
   agent {
     docker {
-      image 'pavandivi/maven-custom-agent:v1'  // Replace with your own built agent image if you have
+      image 'maven:3.8.6-openjdk-11'
       args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
     }
   }
-
   environment {
-    SONAR_URL = "http://98.80.73.136:9000" // Replace with your actual SonarQube server
-    DOCKER_IMAGE = "pavandivi/ultimate-cicd:${BUILD_NUMBER}"
+    SONAR_URL = "http://34.201.116.83:9000"
     GIT_REPO_NAME = "CICD"
-    GIT_USER_NAME = "PavanDivi-DevOps"
+    GIT_USER_NAME = "DiviPavanKumar"
+    DOCKER_IMAGE = "pavandivi/ultimate-cicd:${BUILD_NUMBER}"
+    REGISTRY_CREDENTIALS = credentials('docker-cred')
   }
-
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
-        sh 'echo ✅ Git checkout successful'
+        sh 'echo Cloning project...'
       }
     }
-
     stage('Build and Test') {
       steps {
-        sh '''
-          ls -ltr
-          cd spring-boot-app
-          mvn clean package
-        '''
+        sh 'ls -ltr'
+        sh 'cd spring-boot-app && mvn clean package'
       }
     }
-
     stage('Static Code Analysis') {
       steps {
         withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
           sh '''
             cd spring-boot-app
-            mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}
+            mvn sonar:sonar \
+              -Dsonar.login=$SONAR_AUTH_TOKEN \
+              -Dsonar.host.url=${SONAR_URL}
           '''
         }
       }
     }
-
     stage('Build and Push Docker Image') {
-      environment {
-        REGISTRY_CREDENTIALS = credentials('docker-cred')
-      }
       steps {
         script {
-          sh '''
-            cd spring-boot-app
-            docker build -t ${DOCKER_IMAGE} .
-          '''
+          sh 'cd spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
           def dockerImage = docker.image("${DOCKER_IMAGE}")
           docker.withRegistry('https://index.docker.io/v1/', REGISTRY_CREDENTIALS) {
             dockerImage.push()
@@ -59,7 +47,6 @@ pipeline {
         }
       }
     }
-
     stage('Update Deployment File') {
       steps {
         withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
@@ -75,10 +62,9 @@ pipeline {
       }
     }
   }
-
   post {
     always {
-      cleanWs()
+      echo 'Pipeline finished.'
     }
   }
 }
