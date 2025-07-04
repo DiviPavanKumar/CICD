@@ -31,8 +31,9 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        // Use Dockerfile from root, build context is spring-boot-app
-        sh 'docker build -t ultimate-cicd-pipeline:v1 -f Dockerfile spring-boot-app'
+        dir('spring-boot-app') {
+          sh 'docker build -t ultimate-cicd-pipeline:v1 .'
+        }
       }
     }
 
