@@ -12,7 +12,6 @@ pipeline {
         sh '''
         cd spring-boot-app 
         mvn clean package
-        nohup java -jar target/spring-boot-web.jar --server.port=9090 > app.log 2>&1 &
         '''
       }
     }
