@@ -1,19 +1,15 @@
 pipeline {
-  agent {
-    docker {
-      image 'maven:3.9.6-eclipse-temurin-17'  // ✅ Java 17 for Sonar
-      args '--user root --network host -v /var/run/docker.sock:/var/run/docker.sock'
-    }
-  }
+  agent any  // Runs on Jenkins node with Docker & Maven installed
 
   environment {
-    SONAR_URL = "http://98.80.73.136:9000"
+    SONAR_URL = "http://98.80.73.136:9000"           // Replace with your SonarQube server
     GIT_REPO_NAME = "CICD"
     GIT_USER_NAME = "PavanDivi-DevOps"
     DOCKER_IMAGE = "pavandivi/ultimate-cicd:${BUILD_NUMBER}"
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
