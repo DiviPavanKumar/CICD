@@ -6,6 +6,7 @@ pipeline {
   }
 
   stages {
+
     stage('Build and Test') {
       steps {
         dir('spring-boot-app') {
@@ -30,20 +31,18 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        dir('spring-boot-app') {
-          sh 'docker build -t ultimate-cicd-pipeline:v1 .'
-        }
+        // Use Dockerfile from root, build context is spring-boot-app
+        sh 'docker build -t ultimate-cicd-pipeline:v1 -f Dockerfile spring-boot-app'
       }
     }
 
     stage('Run Docker Container') {
       steps {
-        script {
-          sh 'docker rm -f ultimate-cicd-pipeline || true'
-          sh 'docker run -d --name ultimate-cicd-pipeline -p 8010:8080 ultimate-cicd-pipeline:v1'
-        }
+        sh 'docker rm -f ultimate-cicd-pipeline || true'
+        sh 'docker run -d --name ultimate-cicd-pipeline -p 8010:8080 ultimate-cicd-pipeline:v1'
       }
     }
+
   }
 
   post {
